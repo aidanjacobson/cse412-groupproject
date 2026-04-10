@@ -1,0 +1,41 @@
+services:
+  postgres:
+    image: postgres:18
+    container_name: event_manager_db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-eventdb}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+      - ./db_init.sql:/docker-entrypoint-initdb.d/01-init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: event_manager_app
+    environment:
+      POSTGRES_HOST: postgres
+      PORT: 8080
+      DATABASE_URL: ${DATABASE_URL}
+
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/workspace
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local

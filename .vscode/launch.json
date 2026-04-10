@@ -1,0 +1,13 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Backend",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "/workspace/backend/main.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        }
+    ]
+}
