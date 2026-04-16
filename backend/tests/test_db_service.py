@@ -8,6 +8,11 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'backend'))
 from services.database_service import DatabaseService
 
 
+def _datetime_to_timestamp(dt: datetime) -> int:
+    """Convert datetime to milliseconds since epoch (JavaScript compatible)"""
+    return int(dt.timestamp() * 1000)
+
+
 def test_database_service():
     """Test all DatabaseService methods"""
     db = DatabaseService()
@@ -104,8 +109,8 @@ def test_database_service():
         event1_id = db.create_event(
             eventname="Test Event 1",
             description="This is a test event",
-            starttime=start_time,
-            endtime=end_time,
+            starttime=_datetime_to_timestamp(start_time),
+            endtime=_datetime_to_timestamp(end_time),
             departmentid=dept1_id,
             locationid=loc1_id,
             categories=[cat1_id, cat2_id]
@@ -117,8 +122,8 @@ def test_database_service():
         event2_id = db.create_event(
             eventname="Test Event 2",
             description="Another test event",
-            starttime=start_time2,
-            endtime=end_time2,
+            starttime=_datetime_to_timestamp(start_time2),
+            endtime=_datetime_to_timestamp(end_time2),
             departmentid=dept2_id,
             locationid=loc2_id,
             categories=[cat1_id]
