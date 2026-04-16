@@ -69,13 +69,14 @@ class Server:
                 event_id = self.db.create_event(
                     eventname=body["eventname"],
                     description=body.get("description"),
-                    starttime=body["starttime"],
-                    endtime=body["endtime"],
+                    starttime=body["starttime"],  # Expecting timestamp in milliseconds
+                    endtime=body["endtime"],      # Expecting timestamp in milliseconds
                     departmentid=body["departmentid"],
                     locationid=body["locationid"],
                     categories=body.get("categories", [])
                 )
-            except Exception:
+            except Exception as e:
+                print(f"Error creating event: {e}")
                 return JSONResponse(content={"error": "Invalid request data"})
 
             created = self.db.get_event_by_id(event_id)

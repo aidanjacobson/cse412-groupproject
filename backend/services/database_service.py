@@ -10,6 +10,20 @@ from models.category import Category
 from models.event import Event
 
 
+def _datetime_to_timestamp(dt: datetime) -> int:
+    """Convert datetime to milliseconds since epoch (JavaScript compatible)"""
+    if dt is None:
+        return None
+    return int(dt.timestamp() * 1000)
+
+
+def _timestamp_to_datetime(timestamp_ms: int) -> datetime:
+    """Convert milliseconds since epoch to datetime"""
+    if timestamp_ms is None:
+        return None
+    return datetime.fromtimestamp(timestamp_ms / 1000)
+
+
 class DatabaseService:
     def __init__(self):
         self.conn = None
@@ -194,6 +208,8 @@ class DatabaseService:
         results = self._execute_query(query)
         events = []
         for row in results:
+            row['starttime'] = _datetime_to_timestamp(row['starttime'])
+            row['endtime'] = _datetime_to_timestamp(row['endtime'])
             event = Event(**row)
             event.categories = self.get_event_categories(event.eventid)
             events.append(event)
@@ -204,7 +220,10 @@ class DatabaseService:
         query = "SELECT * FROM Events WHERE EventID = %s"
         results = self._execute_query(query, (event_id,))
         if results:
-            event = Event(**results[0])
+            row = results[0]
+            row['starttime'] = _datetime_to_timestamp(row['starttime'])
+            row['endtime'] = _datetime_to_timestamp(row['endtime'])
+            event = Event(**row)
             event.categories = self.get_event_categories(event_id)
             return event
         return None
@@ -213,37 +232,61 @@ class DatabaseService:
         self,
         eventname: str,
         description: Optional[str],
-        starttime: datetime,
-        endtime: datetime,
+        starttime: int,
+        endtime: int,
         departmentid: int,
         locationid: int,
         categories: Optional[List[int]] = None,
     ) -> int:
         """Create a new event"""
-        query = (
-            "INSERT INTO Events (EventName, Description, StartTime, EndTime, DepartmentID, LocationID) "
-            "VALUES (%s, %s, %s, %s, %s, %s) RETURNING EventID"
-        )
-        with self.conn.cursor() as cursor:
-            cursor.execute(query, (eventname, description, starttime, endtime, departmentid, locationid))
-            event_id = cursor.fetchone()[0]
+        try:
+            # Convert timestamps to datetime for database storage
+            starttime_dt = _timestamp_to_datetime(starttime)
+            endtime_dt = _timestamp_to_datetime(endtime)
+            
+            if starttime_dt is None or endtime_dt is None:
+                raise ValueError("Invalid timestamps provided")
+            
+            query = (
+                "INSERT INTO Events (EventName, Description, StartTime, EndTime, DepartmentID, LocationID) "
+                "VALUES (%s, %s, %s, %s, %s, %s) RETURNING EventID"
+            )
+            
+            event_id = None
+            with self.conn.cursor() as cursor:
+                cursor.execute(query, (eventname, description, starttime_dt, endtime_dt, departmentid, locationid))
+                result = cursor.fetchone()
+                
+                if not result:
+                    raise RuntimeError("Failed to insert event")
+                    
+                event_id = result[0]
 
-            # Add categories if provided
-            if categories:
-                for category_id in categories:
-                    category_query = "INSERT INTO EventCategories (EventID, CategoryID) VALUES (%s, %s)"
-                    cursor.execute(category_query, (event_id, category_id))
+                # Add categories if provided
+                if categories:
+                    for category_id in categories:
+                        category_query = "INSERT INTO EventCategories (EventID, CategoryID) VALUES (%s, %s)"
+                        cursor.execute(category_query, (event_id, category_id))
 
+            # Commit after cursor is closed
             self.conn.commit()
             return event_id
+        except psycopg2.Error as e:
+            self.conn.rollback()
+            print(f"Database error creating event: {e}")
+            raise
+        except Exception as e:
+            self.conn.rollback()
+            print(f"Error creating event: {e}")
+            raise
 
     def update_event(
         self,
         event_id: int,
         eventname: Optional[str] = None,
         description: Optional[str] = None,
-        starttime: Optional[datetime] = None,
-        endtime: Optional[datetime] = None,
+        starttime: Optional[int] = None,
+        endtime: Optional[int] = None,
         departmentid: Optional[int] = None,
         locationid: Optional[int] = None,
     ) -> bool:
@@ -259,10 +302,10 @@ class DatabaseService:
             params.append(description)
         if starttime is not None:
             updates.append("StartTime = %s")
-            params.append(starttime)
+            params.append(_timestamp_to_datetime(starttime))
         if endtime is not None:
             updates.append("EndTime = %s")
-            params.append(endtime)
+            params.append(_timestamp_to_datetime(endtime))
         if departmentid is not None:
             updates.append("DepartmentID = %s")
             params.append(departmentid)
