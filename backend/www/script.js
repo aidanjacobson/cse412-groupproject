@@ -20,7 +20,7 @@ async function doHealthCheck() {
 console.log("Hello from script.js!");
 doHealthCheck(); */
 
-const API = "http://localhost:8080/api";
+const API = "/api";
 
 function formatTime(ts) {
     if (!ts) return "";
