@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Events</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+    <a href="index.html">Home</a> |
+    <a href="events.html">Events</a>
+</nav>
+<div class="container">
+
+    <h1>Events</h1>
+
+<button onclick="goToCreate()">New Event</button> 
+
+<p id="loading">Loading events...</p>
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody id="eventsTable"></tbody>
+</table>
+</div>
+
+<script src="script.js"></script>
+<script>
+    loadEvents();
+</script>
+
+</body>
+</html>
