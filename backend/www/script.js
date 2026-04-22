@@ -130,23 +130,3 @@ async function loadEventDetails() {
 
     loading.style.display = "none";
 }
-
-function editEvent() {
-    window.location.href = `update-event.html?id=${id}`;
-}
-
-async function deleteEvent() {
-    if (!confirm("Are you sure you want to delete this event?")) return;
-
-    try {
-        await fetch(`${API}/events/${id}`, {
-            method: "DELETE"
-        });
-
-        window.location.href = "events.html";
-
-    } catch (err) {
-        alert("Delete failed");
-        console.error(err);
-    }
-}
