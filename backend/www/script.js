@@ -128,7 +128,7 @@ async function loadEventDetails() {
                 <p><strong>Location:</strong> ${location ? location.address : "Unknown"}</p>
                 
 
-                <button class="edit-btn" onclick="editEvent()">Edit</button>
+                <button class="edit-btn" onclick="editEvent(${event.eventid})">Edit</button>
                 <button class="delete-btn" onclick="deleteEventDisplay(${event.eventid})">Delete</button> 
             </div>
         `;
@@ -156,4 +156,118 @@ async function deleteEventDisplay(id) {
         alert("Delete failed");
         console.error(err);
     }
+}
+
+//create event 
+function setupCreate() {
+    const form = document.getElementById("createForm");
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        //build event object from input data
+        const data = {
+            eventname: document.getElementById("eventname").value,
+            description: document.getElementById("description").value,
+            starttime: document.getElementById("starttime").value,
+            endtime: document.getElementById("endtime").value,
+            departmentid: Number(document.getElementById("departmentid").value),
+            locationid: Number(document.getElementById("locationid").value)
+        };
+
+        try {
+            await fetch(`${API}/events`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            });
+
+            //redirect user back to events list
+            document.getElementById("message").textContent = "Event created!";
+            window.location.href = "events.html";
+
+        } catch (err) {
+            alert("Create failed");
+            console.error(err);
+        }
+    });
+}
+
+async function loadExistingEvent(id) {
+    try {
+        const res = await fetch(`${API}/events/${id}`);
+        if (!res.ok) {
+            throw new Error(`Failed to load event: ${res.status}`);
+        }
+        const event = await res.json();
+        const start = event.starttime ? new Date(event.starttime) : null;
+        const end = event.endtime ? new Date(event.endtime) : null;
+        const startOffset = start ? start.getTimezoneOffset() : 0;
+        const endOffset = end ? end.getTimezoneOffset() : 0;
+
+        document.getElementById("eventname").value = event.eventname;
+        document.getElementById("description").value = event.description;
+        document.getElementById("starttime").value = start
+            ? new Date(start.getTime() - startOffset * 60000).toISOString().slice(0, 16)
+            : "";
+        document.getElementById("endtime").value = end
+            ? new Date(end.getTime() - endOffset * 60000).toISOString().slice(0, 16)
+            : "";
+        document.getElementById("departmentid").value = event.departmentid;
+        document.getElementById("locationid").value = event.locationid;
+
+    } catch (err) {
+        alert("Failed to load event");
+        console.error(err);
+    }
+}
+
+//update
+function setupUpdate() {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+
+    if (!id) {
+        alert("Missing event id");
+        window.location.href = "events.html";
+        return;
+    }
+
+    loadExistingEvent(id);
+
+    const form = document.getElementById("updateForm");
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const startValue = document.getElementById("starttime").value;
+        const endValue = document.getElementById("endtime").value;
+
+        const data = {
+            eventname: document.getElementById("eventname").value,
+            description: document.getElementById("description").value,
+            starttime: startValue ? new Date(startValue).getTime() : null,
+            endtime: endValue ? new Date(endValue).getTime() : null,
+            departmentid: Number(document.getElementById("departmentid").value),
+            locationid: Number(document.getElementById("locationid").value)
+        };
+
+        try {
+            const res = await fetch(`${API}/events/${id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            });
+
+            if (!res.ok) {
+                throw new Error(`Update failed: ${res.status}`);
+            }
+
+            document.getElementById("message").textContent = "Event updated!";
+            window.location.href = "events.html";
+
+        } catch (err) {
+            alert("Update failed");
+            console.error(err);
+        }
+    });
 }
