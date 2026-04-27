@@ -1,25 +1,3 @@
-/*
-async function doHealthCheck() {
-    // hit /api/health and log the response
-    try {
-        const response = await fetch("/api/health");
-        const data = await response.json();
-
-        // if {status: "ok"} then log "Backend is connected"
-        if (data.status === "ok") {
-            console.log("Backend is connected and healthy");
-        } else {
-            console.log("Backend is connected but not healthy:", data);
-        }
-
-    } catch (error) {
-        console.log("Could not connect to backend:", error);
-    }
-}
-
-console.log("Hello from script.js!");
-doHealthCheck(); */
-
 const API = "/api";
 
 function formatTime(ts) {
@@ -222,8 +200,40 @@ async function loadExistingEvent(id) {
     }
 }
 
+// Loads departments and locations into dropdown
+async function loadCreateDropdowns() {
+    try {
+        const depRes = await fetch(`${API}/departments`);
+        const departments = await depRes.json();
+
+        const locRes = await fetch(`${API}/locations`);
+        const locations = await locRes.json();
+
+        const departmentSelect = document.getElementById("departmentid");
+        const locationSelect = document.getElementById("locationid");
+
+        departments.forEach(dept => {
+            const option = document.createElement("option");
+            option.value = dept.departmentid;
+            option.textContent = dept.name;
+            departmentSelect.appendChild(option);
+        });
+
+        locations.forEach(loc => {
+            const option = document.createElement("option");
+            option.value = loc.locationid;
+            option.textContent = loc.address;
+            locationSelect.appendChild(option);
+        });
+
+    } catch (err) {
+        alert("Failed to load departments or locations");
+        console.error(err);
+    }
+}
+
 //update
-function setupUpdate() {
+async function setupUpdate() {
     const params = new URLSearchParams(window.location.search);
     const id = params.get("id");
 
@@ -233,7 +243,8 @@ function setupUpdate() {
         return;
     }
 
-    loadExistingEvent(id);
+    await loadCreateDropdowns();
+    await loadExistingEvent(id);
 
     const form = document.getElementById("updateForm");
 

@@ -18,9 +18,8 @@
     <input id="description" placeholder="Description"><br>
     <input id="starttime" type="datetime-local" required><br>
     <input id="endtime" type="datetime-local" required><br>
-    <input id="departmentid" type="number" placeholder="Department ID" required><br>
-    <input id="locationid" type="number" placeholder="Location ID" required><br>
-
+    <select id="departmentid" required><option value="">Select Department</option></select><br>
+    <select id="locationid" required><option value="">Select Location</option></select><br>
     <button type="submit">Create Event</button>
 </form>
 
@@ -28,6 +27,7 @@
 
 <script src="script.js"></script>
 <script>
+    loadCreateDropdowns();
     setupCreate();
 </script>
 
