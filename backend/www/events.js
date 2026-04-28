@@ -43,6 +43,10 @@ function viewEvent(id) {
     window.location.href = `event-details.html?id=${id}`;
 }
 
+function editEvent(id) {
+    window.location.href = `update-event.html?id=${id}`;
+}
+
 
 function goToCreate() {
     window.location.href = "create-event.html";

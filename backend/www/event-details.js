@@ -54,6 +54,10 @@ async function loadEventDetails() {
     loading.style.display = "none";
 }
 
+function editEvent(id) {
+    window.location.href = `update-event.html?id=${id}`;
+}
+
 //delete event-details redirects to events list page
 async function deleteEventDisplay(id) {
     if (!confirm("Are you sure you want to delete this event?")) return;

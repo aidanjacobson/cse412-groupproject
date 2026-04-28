@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Create Event</title>
+    <title>Update Event</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,24 +11,23 @@
     <a href="events.html">Back to Events</a>
 </nav>
 
-<h1>Create Event</h1>
+<h1>Update Event</h1>
 
-<form id="createForm">
+<form id="updateForm">
     <input id="eventname" placeholder="Event Name" required><br>
     <input id="description" placeholder="Description"><br>
     <input id="starttime" type="datetime-local" required><br>
     <input id="endtime" type="datetime-local" required><br>
     <select id="departmentid" required><option value="">Select Department</option></select><br>
     <select id="locationid" required><option value="">Select Location</option></select><br>
-    <button type="submit">Create Event</button>
+    <button type="submit">Update Event</button>
 </form>
 
 <p id="message"></p>
 
 <script src="script.js"></script>
 <script>
-    loadCreateDropdowns();
-    setupCreate();
+    setupUpdate();
 </script>
 
 </body>
